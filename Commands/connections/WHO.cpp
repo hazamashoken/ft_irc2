@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 09:01:58 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/25 20:21:26 by abossel          ###   ########.fr       */
+/*   Updated: 2023/06/01 10:04:41 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,18 @@ namespace Commands {
 	static void who_reply(Command *command, Channel *channel, Client *client)
 	{
 		std::string message;
+		std::string channelName;
 
-		message = channel->getName() + " " + client->getUsername() + " "
+		if (channel != NULL)
+			channelName = channel->getName();
+		else
+			channelName = "*";
+
+		message = channelName + " " + client->getUsername() + " "
 					+ client->getHostname() + " " + client->getServername() + " "
 					+ client->getNickname();
 
-		if (channel->isOperator(client))
+		if (channel != NULL && channel->isOperator(client))
 			message += " H@ :0 ";
 		else
 			message += " H :0 ";
@@ -86,6 +92,11 @@ namespace Commands {
 			command->replyNeedMoreParams("WHO");
 			return ;
 		}
+		if (m->param(1) == "-server")
+		{
+			command->replyClient(IRC::ERR_NOSUCHSERVER, ":Server to server not supported");
+			return ;
+		}
 		if (m->size() == 1 || (m->size() == 2 && m->param(1) == "0"))
 		{
 			// No mask so list all visible clients who don't have a common channel
@@ -93,8 +104,19 @@ namespace Commands {
 			{
 				client = it->second;
 				channel = common_channel(command, c, client);
-				if (channel != NULL)
+				if (channel == NULL)
 					who_reply(command, channel, client);
+			}
+			command->replyClient(IRC::RPL_ENDOFWHO, "* :End of /WHO list.");
+		}
+		if (m->param(1) == "**")
+		{
+			// ** list everyone on the server
+			for (it = s->getClients().begin(); it != s->getClients().end(); it++)
+			{
+				client = it->second;
+				channel = common_channel(command, c, client);
+				who_reply(command, channel, client);
 			}
 			command->replyClient(IRC::RPL_ENDOFWHO, "* :End of /WHO list.");
 		}
@@ -120,8 +142,10 @@ namespace Commands {
 				{
 					client = it->second;
 					if (mask_match(client, m->param(1)))
+					{
 						if (!ops_only || (ops_only && client->isOperator()))
 							who_reply(command, channel, client);
+					}
 				}
 			}
 			command->replyClient(IRC::RPL_ENDOFWHO, m->param(1) + " :End of /WHO list.");

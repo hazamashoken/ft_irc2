@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/17 21:44:14 by abossel           #+#    #+#             */
-/*   Updated: 2023/04/18 13:52:38 by abossel          ###   ########.fr       */
+/*   Updated: 2023/06/01 09:59:37 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,10 @@ bool Wildcard::match_before(const std::string &filename, const std::string &patt
 {
 	size_t next;
 
+	if (filename.empty() && pattern.empty())
+		return (true);
+	if (pattern.empty())
+		return (false);
 	next = pattern.find_first_of("*?\\");
 	if (next == 0)
 		return (match_after(filename, pattern));
@@ -112,11 +116,18 @@ bool Wildcard::match_after(const std::string &filename, const std::string &patte
 	std::string after;
 	size_t next;
 
+	if (filename.empty() && pattern.empty())
+		return (true);
+	if (pattern.empty())
+		return (false);
 	if (pattern[0] == '\\')
 		return (match_escape(filename, pattern));
 	if (pattern[0] == '?')
 		return (match_before(filename.substr(1), pattern.substr(1)));
-	after = pattern.substr(1);
+	next = pattern.find_first_not_of("*");
+	if (next == std::string::npos)
+		return (true);
+	after = pattern.substr(next);
 	for (next = 0; next < filename.size(); next++)
 	{
 		if (match_before(filename.substr(next), after))

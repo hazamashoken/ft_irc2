@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 09:33:08 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/31 12:05:53 by abossel          ###   ########.fr       */
+/*   Updated: 2023/06/01 08:28:40 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -477,8 +477,10 @@ void Message::messageInit()
 
 	// AWAY message
 	_awayMsgExp = Expression(_messageStr);
-	_awayMsgExp.all("AWAY ").tag(IRC_TAG_CMD);
-	_awayMsgExp.all(":").exp(_infoExp).all("\r\n").tag(IRC_TAG_END);
+	_awayMsgExp.all("AWAY").tag(IRC_TAG_CMD);
+	_awayMsgExp.exp(Expression().all(" :").exp(_infoExp)).jmp();
+	_awayMsgExp.all(" :").con();
+	_awayMsgExp.all("\r\n").tag(IRC_TAG_END);
 
 	// UNSUPPORTED message
 	_unsupportedMsgExp = Expression(_messageStr);
