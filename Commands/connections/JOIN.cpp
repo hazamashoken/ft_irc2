@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 10:02:43 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/30 15:11:58 by abossel          ###   ########.fr       */
+/*   Updated: 2023/06/01 10:26:48 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ namespace Commands {
 				c->joinChannel(channels[i]);
 				channel = s->getChannelByName(channels[i]);
 				channel->addOperator(c);
+				command->replyClient("MODE " + channel->getName() + " o");
 				if (i < keys.size())
 				{
 					msg = "MODE " + channels[i] + " +k " + keys[i] + "\r\n";
