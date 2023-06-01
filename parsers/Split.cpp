@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/16 09:40:19 by abossel           #+#    #+#             */
-/*   Updated: 2023/04/16 11:40:37 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/30 15:59:34 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,4 +92,18 @@ void Split::split(const std::string &string, const std::string &delimiters)
 			end = string.size();
 		_words.push_back(string.substr(pos, end - pos));
 	}
+}
+
+std::string Split::join(char delimiter)
+{
+	std::string output;
+	iterator it;
+
+	for (it = begin(); it != end(); it++)
+	{
+		if (it != begin())
+			output.append(1, delimiter);
+		output.append(*it);
+	}
+	return (output);
 }

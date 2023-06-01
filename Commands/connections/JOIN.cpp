@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 10:02:43 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/30 12:01:36 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/30 15:11:58 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,11 @@ namespace Commands {
 				if (channel->getInviteOnly() && !channel->hasInvite(c->getNickname()))
 				{
 					command->replyClient(IRC::ERR_INVITEONLYCHAN, channel->getName() + " :Cannot join channel (+i)");
+					return ;
+				}
+				if (channel->hasLimit() && channel->getLimit() <= channel->nrClients())
+				{
+					command->replyClient(IRC::ERR_CHANNELISFULL, channel->getName() + " :Cannot join channel (+l)");
 					return ;
 				}
 				if (channel->getKey() != "")

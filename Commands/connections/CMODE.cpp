@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 12:46:56 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/30 13:03:44 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/31 12:14:08 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,19 +29,36 @@ namespace Commands
 	static void channel_change(Command *command, Channel *channel, const std::string &mode, const std::string &target)
 	{
 		if (target.empty())
+		{
 			command->replyChannel(*channel, "MODE " + channel->getName() + " :" + mode);
+			command->replyClient("MODE " + channel->getName() + " :" + mode);
+		}
 		else
+		{
 			command->replyChannel(*channel, "MODE " + channel->getName() + " " + mode + " :" + target);
+			command->replyClient("MODE " + channel->getName() + " " + mode + " :" + target);
+		}
 	}
 
-	static std::string mode_string(Channel *channel)
+	static std::string mode_string(Channel *channel, Client *client)
 	{
-		std::string mode = "+nt";
+		std::string mode = "+n";
 
 		if (channel->getInviteOnly())
 			mode += "i";
 		if (!channel->getKey().empty())
 			mode += "k";
+		if (channel->hasLimit())
+			mode += "l";
+		if (channel->isOperator(client))
+			mode += "o";
+		if (channel->getTopicChangeAllowed())
+			mode += "t";
+
+		if (!channel->getKey().empty())
+			mode += " :" + channel->getKey();
+		if (channel->hasLimit())
+			mode += " :" + itostring(channel->getLimit(), false);
 
 		return (mode);
 	}
@@ -76,7 +93,7 @@ namespace Commands
 
 		if (m->param(2).empty())
 		{
-			command->replyClient(IRC::RPL_CHANNELMODEIS, channel->getName() + " :" + mode_string(channel));
+			command->replyClient(IRC::RPL_CHANNELMODEIS, channel->getName() + " :" + mode_string(channel, c));
 			return ;
 		}
 
@@ -128,6 +145,17 @@ namespace Commands
 					command->replyClient(IRC::ERR_CHANOPRIVSNEEDED, channel->getName() + " :You're not channel operator");
 				break;
 			case 't': // toggle topic set by operator only
+				if (channel->isOperator(c))
+				{
+					if (!plus)
+						channel_change(command, channel, "-t", "");
+					else
+						channel_change(command, channel, "+t", "");
+					channel->setTopicChangeAllowed(plus);
+				}
+				else
+					command->replyClient(IRC::ERR_CHANOPRIVSNEEDED, channel->getName() + " :You're not channel operator");
+				break;
 				break;
 			case 'n': // toggle no messages from clients outside
 				break;
@@ -135,7 +163,23 @@ namespace Commands
 				unknown_mode(command, modes[i][1]);
 				break;
 			case 'l': // set or remove channel user limit
-				unknown_mode(command, modes[i][1]);
+				if (channel->isOperator(c))
+				{
+					if (!plus)
+					{
+						channel->removeLimit();
+						channel_change(command, channel, "-l", "");
+					}
+					else
+					{
+						int limit = ft_stoi(modes[i + 1]);
+						if (limit > 0)
+							channel->setLimit(limit);
+						channel_change(command, channel, "+l", itostring(channel->getLimit(), false));
+					}
+				}
+				else
+					command->replyClient(IRC::ERR_CHANOPRIVSNEEDED, channel->getName() + " :You're not channel operator");
 				if (plus)
 					i++;
 				break;
@@ -170,6 +214,6 @@ namespace Commands
 				break;
 			}
 		}
-		command->replyClient(IRC::RPL_CHANNELMODEIS, channel->getName() + " :" + mode_string(channel));
+		command->replyClient(IRC::RPL_CHANNELMODEIS, channel->getName() + " :" + mode_string(channel, c));
 	}
 }

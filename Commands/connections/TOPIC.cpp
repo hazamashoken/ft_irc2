@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/17 10:01:15 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/25 20:14:05 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/30 15:37:21 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ namespace Commands {
 		else if (m->size() == 3)
 		{
 			Debug::debug("TOPIC topic: " + m->param(2));
-			if (!channel->isOperator(c))
+			if (!channel->getTopicChangeAllowed() && !channel->isOperator(c))
 			{
 				command->replyClient(IRC::ERR_CHANOPRIVSNEEDED, channel->getName() + " :You're not channel operator");
 				return ;
@@ -63,6 +63,7 @@ namespace Commands {
 			{
 				channel->setTopic(m->param(2));
 				command->replyChannel(*channel, IRC::RPL_TOPIC, channel->getName() + " :" + channel->getTopic());
+				command->replyClient(IRC::RPL_TOPIC, channel->getName() + " :" + channel->getTopic());
 			}
 		}
 	}

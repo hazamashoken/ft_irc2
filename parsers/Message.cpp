@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 09:33:08 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/29 12:51:23 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/31 12:05:53 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ void Message::expressionInit()
 
 	// password expression
 	_passwordExp = Expression(_passwordStr);
-	_passwordExp.inv(IRC_NONPASS, 5);
+	_passwordExp.inv(IRC_NONPASS, 1);
 
 	// bitmode expression
 	_bitmodeExp = Expression(_bitmodeStr);
@@ -182,7 +182,7 @@ void Message::expressionInit()
 
 	// channel mode expression
 	_channelModeExp = Expression(_channelModeStr);
-	_channelModeExp.any("+-").any(IRC_CMODE_GIV + IRC_CMODE_TOG + IRC_CMODE_SET, 1);
+	_channelModeExp.exp(Expression().any("+-").any(IRC_CMODE_GIV + IRC_CMODE_TOG + IRC_CMODE_SET, 1), 1);
 	_channelModeExp.exp(Expression().all(" ").exp(_targetExp), 0);
 
 	// channel mode list expression
@@ -324,8 +324,12 @@ void Message::messageInit()
 	
 	// channel INVITE message
 	_inviteMsgExp = Expression(_messageStr);
-	_inviteMsgExp.all("INVITE ").tag(IRC_TAG_CMD).exp(_nicknameExp);
-	_inviteMsgExp.all(" ").exp(_channelExp).all(" ", 0).all("\r\n").tag(IRC_TAG_END);
+	_inviteMsgExp.all("INVITE ").tag(IRC_TAG_CMD);
+	_inviteMsgExp.exp(Expression().exp(_nicknameExp).all(" ").exp(_channelExp).all(" :").exp(_infoExp)).jmp();
+	_inviteMsgExp.exp(Expression().exp(_nicknameExp).all(" ").exp(_channelExp)).jmp();
+	_inviteMsgExp.exp(Expression().exp(_channelExp).all(" ").exp(_unusedExp).all(" :").exp(_infoExp)).jmp();
+	_inviteMsgExp.exp(Expression().exp(_channelExp).all(" ").exp(_unusedExp)).con();
+	_inviteMsgExp.all(" ", 0).all("\r\n").tag(IRC_TAG_END);
 
 	// channel KICK message
 	_kickMsgExp = Expression(_messageStr);
@@ -519,7 +523,7 @@ void Message::stringClear()
 }
 
 // splits a channel mode string
-// e.g. +im will become "+i +m"
+// e.g. +im or +i+m will become "+i +m"
 // special case +b with no target will become b
 bool Message::splitCModeStr()
 {
@@ -528,6 +532,7 @@ bool Message::splitCModeStr()
 	size_t target;
 	size_t index;
 	size_t mode;
+	size_t pos;
 	bool plus;
 
 	if (_channelModeListStr == "" || _channelModeListStr == "b")
@@ -535,6 +540,19 @@ bool Message::splitCModeStr()
 
 	Expression opts;
 	opts.any("+-").any(IRC_CMODE_GIV + IRC_CMODE_TOG + IRC_CMODE_SET, 1);
+
+	sp.split(_channelModeListStr, ' ');
+	for (index = 0; index < sp.size(); index++)
+	{
+		pos = sp[index].find_first_of("+-");
+		while (pos != std::string::npos)
+		{
+			if (pos != 0 && sp[index][pos - 1] != ' ')
+				sp[index].insert(pos, " ");
+			pos = sp[index].find_first_of("+-", pos + 1);
+		}
+	}
+	_channelModeListStr = sp.join(' ');
 
 	sp.split(_channelModeListStr, ' ');
 	index = 0;

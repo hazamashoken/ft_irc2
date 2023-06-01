@@ -3,6 +3,7 @@
 // Prototypes for the Channel class in an IRC server implementation in C++ (std=98)
 
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 #include <map>
@@ -29,6 +30,12 @@ class Channel {
 		void removeInvite(const std::string& nickname);
 		bool hasInvite(const std::string& nickname);
 		void clearInvite();
+		void setLimit(int limit);
+		void removeLimit();
+		bool hasLimit() const;
+		int getLimit() const;
+		void setTopicChangeAllowed(bool allowed);
+		bool getTopicChangeAllowed() const;
 		void addOperator(Client *client);
 		void removeOperator(Client *client);
 		bool isOperator(Client *client) const;
@@ -47,5 +54,7 @@ class Channel {
 		std::map<std::string, Client *> __clients;
 		std::set<Client *> __operators;
 		bool __inviteOnly;
+		int __clientLimit;
+		bool __topicChangeAllowed;
 		std::set<std::string> __invites;
 };

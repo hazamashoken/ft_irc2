@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/16 09:26:37 by abossel           #+#    #+#             */
-/*   Updated: 2023/04/16 11:40:44 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/30 15:56:49 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class Split
 		iterator end();
 		void split(const std::string &string, char delimiter);
 		void split(const std::string &string, const std::string &delimiters);
+		std::string join(char delimiter);
 
 	private:
 		std::vector<std::string> _words;

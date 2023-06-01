@@ -4,6 +4,8 @@
 Channel::Channel(const std::string& name)
 : __name(name)
 {
+	removeLimit();
+	setInviteOnly(false);
 }
 
 Channel::~Channel() {
@@ -75,6 +77,35 @@ bool Channel::hasInvite(const std::string& nickname)
 void Channel::clearInvite()
 {
 	__invites.clear();
+}
+
+void Channel::setLimit(int limit)
+{
+	__clientLimit = limit;
+}
+
+void Channel::removeLimit()
+{
+	__clientLimit = -1;
+}
+
+bool Channel::hasLimit() const
+{
+	return (__clientLimit != -1);
+}
+
+int Channel::getLimit() const
+{
+	return (__clientLimit);
+}
+void Channel::setTopicChangeAllowed(bool allowed)
+{
+	__topicChangeAllowed = allowed;
+}
+
+bool Channel::getTopicChangeAllowed() const
+{
+	return __topicChangeAllowed;
 }
 
 void Channel::addOperator(Client *client) {

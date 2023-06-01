@@ -6,7 +6,7 @@
 /*   By: abossel <abossel@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/30 11:24:56 by abossel           #+#    #+#             */
-/*   Updated: 2023/05/30 12:13:36 by abossel          ###   ########.fr       */
+/*   Updated: 2023/05/31 12:08:46 by abossel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,11 @@ namespace Commands {
 			command->replyNeedMoreParams("INVITE");
 			return ;
 		}
-		
+
+		// bug workaround for bitchx
+		if (!m->getUnused().empty())
+			return ;
+
 		Channel *channel;
 		Client *client;
 
@@ -64,6 +68,9 @@ namespace Commands {
 		}
 		channel->addInvite(m->param(1));
 		command->replyClient(IRC::RPL_INVITING, m->param(1) + " " + m->param(2));
-		command->replyOther(*client, IRC::RPL_INVITING, m->param(1) + " " + m->param(2));
+		if (!channel->getKey().empty())
+			command->replyOther(*client, IRC::RPL_INVITING, m->param(1) + " " + m->param(2) + " :" + channel->getKey());
+		else
+			command->replyOther(*client, IRC::RPL_INVITING, m->param(1) + " " + m->param(2));
 	}
 }
